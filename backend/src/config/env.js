@@ -15,7 +15,11 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1),
   SESSION_SECRET: z.string().min(16, 'SESSION_SECRET must be at least 16 characters'),
   SESSION_MAX_AGE: z.coerce.number().int().positive().default(8 * 60 * 60 * 1000), // ms
-  COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),
+  // Unset: 'none' in production (API and SPA are normally on different sites, e.g. two *.onrender.com
+  // hosts, which count as cross-site), 'lax' in development. CSRF token + Origin check still apply.
+  COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).optional(),
+  // Behind a reverse proxy (Render, Heroku, nginx…). Unset: on in production or on Render.
+  TRUST_PROXY: z.enum(['true', 'false']).optional(),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
   MAX_FILE_SIZE: z.coerce.number().int().positive().default(10 * 1024 * 1024), // bytes per PDF
   MAX_FILES: z.coerce.number().int().positive().default(5),
@@ -30,7 +34,11 @@ if (!parsed.success) {
   process.exit(1);
 }
 
+const isProd = parsed.data.NODE_ENV === 'production';
+
 export const env = Object.freeze({
   ...parsed.data,
-  isProd: parsed.data.NODE_ENV === 'production',
+  isProd,
+  COOKIE_SAMESITE: parsed.data.COOKIE_SAMESITE ?? (isProd ? 'none' : 'lax'),
+  trustProxy: parsed.data.TRUST_PROXY ? parsed.data.TRUST_PROXY === 'true' : isProd || Boolean(process.env.RENDER),
 });

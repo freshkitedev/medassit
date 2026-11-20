@@ -14,10 +14,17 @@ import transcriptionRoutes from './routes/transcription.routes.js';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  if (env.isProd) app.set('trust proxy', 1); // correct client IP + secure cookies behind a proxy
+  if (env.trustProxy) app.set('trust proxy', 1); // Render terminates TLS: needed for Secure cookies + client IP
 
   app.use(helmet());
-  app.use(cors({ origin: new URL(env.FRONTEND_URL).origin, credentials: true }));
+  app.use(
+    cors({
+      origin: new URL(env.FRONTEND_URL).origin, // exact origin: wildcards are invalid with credentials
+      credentials: true,
+      methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'X-CSRF-Token'],
+    })
+  );
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,

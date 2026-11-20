@@ -4,6 +4,10 @@ import { createApp } from './app.js';
 
 async function main() {
   await connectDatabase();
+  // Non-sensitive deployment diagnostics (helps spot cookie/proxy misconfiguration).
+  console.log(
+    `Config: env=${env.NODE_ENV} trustProxy=${env.trustProxy} cookie(sameSite=${env.COOKIE_SAMESITE}, secure=${env.isProd || env.COOKIE_SAMESITE === 'none'}) frontendOrigin=${new URL(env.FRONTEND_URL).origin}`
+  );
   const app = createApp();
   const server = app.listen(env.PORT, () => console.log(`MediScan API listening on port ${env.PORT}`));
 

@@ -27,6 +27,7 @@ export function createSessionMiddleware() {
 
   return session({
     name: SESSION_COOKIE_NAME,
+    proxy: env.trustProxy || undefined, // honour X-Forwarded-Proto so Secure cookies are issued behind the proxy
     secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false, // no cookie until the user logs in

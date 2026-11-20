@@ -108,6 +108,7 @@ Review before real-world use: data-protection law (HIPAA/GDPR/DPDP), data-proces
 
 - **Server exits at start:** read the listed missing env vars; check `MONGODB_URI` reachability.
 - **Google button missing / "origin not allowed":** add the exact frontend origin to *Authorized JavaScript origins*; confirm `VITE_GOOGLE_CLIENT_ID`; disable ad-blockers for `accounts.google.com`.
+- **Login returns 200 but next calls are 401 (Render / split hosting):** the session cookie isn't being set or sent. Needs `NODE_ENV=production` (or `TRUST_PROXY=true`), `COOKIE_SAMESITE=none` (the production default), HTTPS, and `FRONTEND_URL` equal to the exact frontend origin. Two `*.onrender.com` hosts are *cross-site*. Safari/Firefox may still block third-party cookies; the robust fix is a same-origin setup (custom domains like `app.x.com` + `api.x.com`, or a Render rewrite `/api/*` → backend with `VITE_API_URL=/api`).
 - **Logged out immediately / 403 BAD_CSRF:** `FRONTEND_URL` must exactly equal the browser origin; cross-site deployments need `COOKIE_SAMESITE=none` + HTTPS.
 - **Microphone blocked:** microphone needs HTTPS or `localhost`, and browser permission.
 - **"PDF may be scanned":** only text-based PDFs are supported until an OCR provider is registered.
